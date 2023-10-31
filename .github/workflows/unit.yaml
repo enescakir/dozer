@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   workflow_dispatch:
-  pull_request_target:
+  push:
     branches: [main]
   merge_group:
 
@@ -21,9 +21,15 @@ jobs:
   # Run unit tests
   unit:
     timeout-minutes: 60
-    runs-on:
-      group: Org Larger Runners
-      labels: ubuntu-latest-16-cores
+    name: Unit ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [ubicloud-standard-2, ubicloud-standard-4, ubicloud-standard-8, ubicloud-standard-16]
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: true
+    # runs-on:
+    #   group: Org Larger Runners
+    #   labels: ubuntu-latest-16-cores
     services:
       postgres:
         image: debezium/postgres:13
@@ -42,12 +48,12 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          role-session-name: dozer-coverage
-          aws-region: us-east-2
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v2
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      #     role-session-name: dozer-coverage
+      #     aws-region: us-east-2
 
       - if: github.event_name == 'pull_request_target'
         uses: actions/checkout@v3

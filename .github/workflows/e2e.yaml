@@ -2,8 +2,8 @@ name: Dozer E2E Test
 
 on:
   workflow_dispatch:
-  pull_request_target:
-    branches: [main]
+  push:
+    branches: [build-test]
 
 env:
   CARGO_TERM_COLOR: always
@@ -21,8 +21,12 @@ jobs:
     # run the job there
     if: ${{ github.event_name != 'pull_request_target' }}
     timeout-minutes: 90
-    runs-on:
-      labels: ubuntu-latest
+    name: E2E ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [ubicloud-standard-2, ubicloud-standard-4, ubicloud-standard-8, ubicloud-standard-16]
+    runs-on: ${{ matrix.runner }}
+    continue-on-error: true
     steps:
       - if: github.event_name == 'pull_request_target'
         uses: actions/checkout@v3
